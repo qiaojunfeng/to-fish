@@ -30,8 +30,21 @@ function __to_bm_path
 end
 
 function __to_resolve
-  readlink (__to_bm_path $argv)
-  return $status
+  # readlink (__to_bm_path $argv)
+  # return $status
+  set -l bm_path (__to_bm_path $argv)
+  set -l readlink_path (readlink $bm_path)
+  set -l readlink_status $status
+  if test -z "$readlink_path"; or test ! -e "$bm_path"
+    # If empty return nothing, so in `__to_complete_directories` it will add current
+    # directories to tab completion.
+    echo $readlink_path
+  else
+    # Resolve symlinks, so I can use relative symlinks as bookmarks.
+    # Useful when I have same bookmarks on two machines, but with different username in $HOME.
+    readlink -f (__to_bm_path $argv)
+  end
+  return $readlink_status
 end
 
 function __to_print
